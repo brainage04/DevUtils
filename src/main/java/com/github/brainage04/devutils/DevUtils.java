@@ -61,6 +61,7 @@ public class DevUtils {
             int framebufferIndex = 0;
             int size = Integer.parseInt(args[0]);
 
+            // for some reason 2 is the only number that works here - not sure why
             int itemsPerRow = 16 * 2;
             int itemsPerColumn = 9 * 2;
             int width = size * itemsPerRow;
