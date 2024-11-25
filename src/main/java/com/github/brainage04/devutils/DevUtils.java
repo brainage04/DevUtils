@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.ClientCommandHandler;
@@ -27,7 +28,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Mod(modid = DevUtils.MOD_ID, useMetadata=true)
@@ -42,8 +42,7 @@ public class DevUtils {
     }
 
     public static class CaptureCommand extends CommandBase {
-        // these items do not have models, and therefore should not be in the atlas
-        List<String> blacklistedItems = new ArrayList<>(Arrays.asList("FARMLAND", "LIT_FURNACE"));
+        List<ItemStack> itemStacks = new ArrayList<>();
 
         @Override
         public String getCommandName() {
@@ -57,82 +56,77 @@ public class DevUtils {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            // begin framebuffer
-            int framebufferIndex = 0;
-            int size = Integer.parseInt(args[0]);
-
-            // for some reason 2 is the only number that works here - not sure why
-            int itemsPerRow = 16 * 2;
-            int itemsPerColumn = 9 * 2;
-            int width = size * itemsPerRow;
-            int height = size * itemsPerColumn;
-            int bufferX = 0;
-            int bufferY = 0;
-            int bufferYcarry = 0;
-            Framebuffer framebuffer = new Framebuffer(width, height, true);
-            framebuffer.bindFramebuffer(true);
-
-            File file = new File("atlas.txt");
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            if (itemStacks.isEmpty()) {
                 for (Item item : Item.itemRegistry) {
-                    if (item == null) continue;
+                    // these items do not have models, and therefore should not be in the atlas
+                    if (item == null || item == Item.getItemFromBlock(Blocks.farmland) || item == Item.getItemFromBlock(Blocks.lit_furnace)) continue;
                     List<ItemStack> subItemStacks = new ArrayList<>();
                     item.getSubItems(item, null, subItemStacks);
                     if (subItemStacks.isEmpty()) {
                         subItemStacks.add(new ItemStack(item));
                     }
 
-                    for (ItemStack subItemStack : subItemStacks) {
-                        Item subItem = subItemStack.getItem();
+                    itemStacks.addAll(subItemStacks);
+                }
+            }
+            LOGGER.info("Item stack count: {}", itemStacks.size());
 
-                        String name1 = subItemStack.getDisplayName().toUpperCase().replace(' ', '_');
-                        String name2 = subItem.getRegistryName().substring(10).toUpperCase().replace(' ', '_');
+            // begin framebuffer
+            int size = Integer.parseInt(args[0]);
 
-                        if (blacklistedItems.contains(name2)) {
-                            continue;
-                        }
+            // todo: implement algorithm that adjusts rendering for non-16:9 aspect ratios
+            int columns = 16 * 2;
+            int rows = 9 * 2 + 2;
 
-                        if (subItemStack.getMetadata() != 0) {
-                            name2 += ":" + subItemStack.getMetadata();
-                        }
+            int width = size * columns;
+            int height = size * rows;
+            int bufferX = 0;
+            int bufferY = 0;
 
-                        writer.write(String.format(
-                                "%s (%s): [%d, %d]",
-                                name1,
-                                name2,
-                                bufferX,
-                                bufferY + bufferYcarry * (itemsPerColumn - 2)
-                        ));
-                        writer.newLine();
+            LOGGER.info("Columns: {}", columns);
+            LOGGER.info("Rows: {}", rows);
 
-                        // add rendered item to framebuffer
-                        GlStateManager.pushMatrix();
-                        RenderHelper.enableGUIStandardItemLighting();
+            Framebuffer framebuffer = new Framebuffer(width, height, true);
+            framebuffer.bindFramebuffer(true);
 
-                        if (subItemStack.hasEffect()) {
-                            ((IRenderItemMixin) Minecraft.getMinecraft().getRenderItem()).devUtils$renderItemIntoGUIWithoutEffect(subItemStack, bufferX * 16, bufferY * 16);
-                        } else {
-                            Minecraft.getMinecraft().getRenderItem().renderItemIntoGUI(subItemStack, bufferX * 16, bufferY * 16);
-                        }
+            File file = new File("atlas.txt");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                for (ItemStack itemStack : itemStacks) {
+                    Item subItem = itemStack.getItem();
 
-                        RenderHelper.disableStandardItemLighting();
-                        GlStateManager.popMatrix();
+                    String name1 = itemStack.getDisplayName().toUpperCase().replace(' ', '_');
+                    String name2 = subItem.getRegistryName().substring(10).toUpperCase().replace(' ', '_');
 
-                        // increment counters
-                        bufferX++;
-                        if (bufferX == itemsPerRow) {
-                            bufferX = 0;
-                            bufferY++;
-                        }
+                    if (itemStack.getMetadata() != 0) {
+                        name2 += ":" + itemStack.getMetadata();
+                    }
 
-                        if (bufferY == itemsPerColumn - 2) {
-                            saveCurrentFramebuffer(framebuffer, width, height, framebufferIndex);
-                            framebufferIndex++;
-                            framebuffer = new Framebuffer(width, height, true);
-                            framebuffer.bindFramebuffer(true);
-                            bufferY = 0;
-                            bufferYcarry++;
-                        }
+                    writer.write(String.format(
+                            "%s (%s): [%d, %d]",
+                            name1,
+                            name2,
+                            bufferX,
+                            bufferY
+                    ));
+                    writer.newLine();
+
+                    // add rendered item to framebuffer
+                    GlStateManager.pushMatrix();
+                    RenderHelper.enableGUIStandardItemLighting();
+
+                    // scaled down by 1/9ths
+                    GlStateManager.scale(1.0 / 1.2, (1.0 / 1.2) * 8 / 9, 1.0);
+
+                    ((IRenderItemMixin) Minecraft.getMinecraft().getRenderItem()).devUtils$renderItemIntoGUIWithoutEffect(itemStack, bufferX * 16, bufferY * 16);
+
+                    RenderHelper.disableStandardItemLighting();
+                    GlStateManager.popMatrix();
+
+                    // increment counters
+                    bufferX++;
+                    if (bufferX == columns) {
+                        bufferX = 0;
+                        bufferY++;
                     }
                 }
 
@@ -141,11 +135,6 @@ public class DevUtils {
                 LOGGER.error("Failed to save item identifiers: {}", e.getMessage());
             }
 
-            saveCurrentFramebuffer(framebuffer, width, height, framebufferIndex);
-        }
-
-        private static void saveCurrentFramebuffer(Framebuffer framebuffer, int width, int height, int framebufferIndex) {
-            // end framebuffer
             framebuffer.bindFramebuffer(false);
 
             IntBuffer buffer = ByteBuffer.allocateDirect(width * height * 4)
@@ -170,11 +159,12 @@ public class DevUtils {
                 }
             }
 
-            File output = new File(String.format("atlas%d.png", framebufferIndex));
+            File output = new File("atlas.png");
             try {
                 ImageIO.write(image, "PNG", output);
+                LOGGER.info("Atlas saved to {}", output.getAbsolutePath());
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Could not write image to file!");
             }
         }
 
