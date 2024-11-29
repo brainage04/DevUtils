@@ -1,4 +1,4 @@
-package com.github.brainage04.devutils.mixin_interface;
+package com.github.brainage04.devutils.mixin_other;
 
 import net.minecraft.item.ItemStack;
 

@@ -1,5 +1,6 @@
 package com.github.brainage04.devutils;
 
+import com.github.brainage04.devutils.command.SkyBlockAtlasCommand;
 import com.github.brainage04.devutils.command.VanillaAtlasCommand;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.fml.common.Mod;
@@ -15,5 +16,6 @@ public class DevUtils {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         ClientCommandHandler.instance.registerCommand(new VanillaAtlasCommand());
+        ClientCommandHandler.instance.registerCommand(new SkyBlockAtlasCommand());
     }
 }

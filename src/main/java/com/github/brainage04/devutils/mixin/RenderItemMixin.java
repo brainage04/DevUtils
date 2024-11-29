@@ -1,6 +1,6 @@
 package com.github.brainage04.devutils.mixin;
 
-import com.github.brainage04.devutils.mixin_interface.IRenderItemMixin;
+import com.github.brainage04.devutils.mixin_other.IRenderItemMixin;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.ItemModelMesher;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
