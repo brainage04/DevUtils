@@ -2,6 +2,7 @@ package com.github.brainage04.devutils.command;
 
 import com.github.brainage04.devutils.DevUtils;
 import com.github.brainage04.devutils.util.AtlasUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.init.Blocks;
@@ -26,7 +27,8 @@ public class VanillaAtlasCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/atlas <pixels> - the width and height of each individual texture in the atlas";
+        return "/atlas <pixels>" +
+                "\n<pixels> - the width and height of each individual texture in the atlas";
     }
 
     private void generateAtlasMappings(int size) {
@@ -113,15 +115,16 @@ public class VanillaAtlasCommand extends CommandBase {
         }
         DevUtils.LOGGER.info("Item stack count: {}", itemStacks.size());
 
+        if (args.length != 1) {
+            Minecraft.getMinecraft().thePlayer.sendChatMessage(getCommandUsage(Minecraft.getMinecraft().thePlayer));
+            return;
+        }
+
         int size = Integer.parseInt(args[0]);
 
         AtlasUtils.processAtlas(itemStacks, size, getCommandName());
 
-        boolean shouldGenerateMappings = Boolean.parseBoolean(args[1]);
-
-        if (shouldGenerateMappings) {
-            generateAtlasMappings(size);
-        }
+        generateAtlasMappings(size);
     }
 
     @Override
