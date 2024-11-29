@@ -1,7 +1,9 @@
 package com.github.brainage04.devutils.command;
 
+import com.github.brainage04.devutils.DevUtils;
 import com.github.brainage04.devutils.util.AtlasUtils;
 import com.github.brainage04.devutils.util.SkyBlockSkinValues;
+import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.init.Items;
@@ -22,7 +24,8 @@ public class SkyBlockAtlasCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/skyblockatlas <pixels> - the width and height of each individual texture in the atlas";
+        return "/skyblockatlas <pixels>" +
+                "\n<pixels>- the width and height of each individual texture in the atlas";
     }
 
     @Override
@@ -57,6 +60,12 @@ public class SkyBlockAtlasCommand extends CommandBase {
 
                 itemStacks.add(skull);
             }
+        }
+        DevUtils.LOGGER.info("Item stack count: {}", itemStacks.size());
+
+        if (args.length != 1) {
+            Minecraft.getMinecraft().thePlayer.sendChatMessage(getCommandUsage(Minecraft.getMinecraft().thePlayer));
+            return;
         }
 
         int size = Integer.parseInt(args[0]);
