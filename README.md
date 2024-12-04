@@ -1,5 +1,6 @@
 # About
 This mod features a collection of helpful utility commands for developers creating Minecraft-related products. As of right now, this mod features:
+
 1. /atlas \<pixels\> - generates vanilla atlas files
    - \<pixels\> - the width and height of each individual texture in the atlas
 2. /skyblockatlas \<pixels\> \<fullAtlas\> - generates Hypixel SkyBlock atlas files
