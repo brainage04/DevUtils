@@ -2,6 +2,7 @@ package com.github.brainage04.devutils.command;
 
 import com.github.brainage04.devutils.DevUtils;
 import com.github.brainage04.devutils.util.AtlasUtils;
+import com.github.brainage04.devutils.util.ChatUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.init.Blocks;
@@ -73,7 +74,7 @@ public class VanillaAtlasCommand extends CommandBase {
         File atlasMappingsFile = new File(String.format("%s.txt", getCommandName()));
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(atlasMappingsFile))) {
             writer.write(atlasMappingsString.toString());
-            DevUtils.LOGGER.info("Atlas mappings saved to {}", atlasMappingsFile.getAbsolutePath());
+            ChatUtils.addChatMessage(String.format("Atlas mappings saved to %s", atlasMappingsFile.getAbsolutePath()));
         } catch (IOException e) {
             DevUtils.LOGGER.error("Failed to save atlas mappings: {}", e.getMessage());
         }
@@ -81,7 +82,7 @@ public class VanillaAtlasCommand extends CommandBase {
         File atlasCssFile = new File(String.format("%s.css", getCommandName()));
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(atlasCssFile))) {
             writer.write(atlasCssString.toString());
-            DevUtils.LOGGER.info("Atlas CSS saved to {}", atlasCssFile.getAbsolutePath());
+            ChatUtils.addChatMessage(String.format("Atlas CSS saved to %s", atlasMappingsFile.getAbsolutePath()));
         } catch (IOException e) {
             DevUtils.LOGGER.error("Failed to save atlas CSS: {}", e.getMessage());
         }
@@ -90,6 +91,7 @@ public class VanillaAtlasCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length != 1) {
+            ChatUtils.addChatMessage(getCommandUsage(sender));
             return;
         }
 

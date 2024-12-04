@@ -23,6 +23,17 @@ public class AtlasUtils {
     public static final int rows = 9 * 2;
 
     public static void processAtlas(List<ItemStack> itemStacks, int size, String fileName) {
+        if (!Minecraft.getMinecraft().isFullScreen()) {
+            // for some reason this doesn't work (even though it SHOULD)
+            //Minecraft.getMinecraft().toggleFullscreen();
+            ChatUtils.addChatMessage(
+                    "ERROR: Minecraft is not fullscreen. " +
+                            "Please press F11 to enter fullscreen mode - " +
+                            "this is required for rendering to work properly."
+            );
+            return;
+        }
+
         int width = size * columns;
         int height = size * rows;
 
@@ -40,20 +51,12 @@ public class AtlasUtils {
 
         double scale = 1.0 / 1.2; // DON'T ASK I DON'T KNOW
 
-        double displayWidth = Minecraft.getMinecraft().displayWidth;
-        double displayHeight = Minecraft.getMinecraft().displayHeight;
-        double desiredAspectRatio = 16.0 / 9.0;
-        double actualAspectRatio = displayWidth / displayHeight;
-        double scaleY = desiredAspectRatio / actualAspectRatio;
-        DevUtils.LOGGER.info("Screen width: {}, Screen height: {}", displayWidth, displayHeight);
-        DevUtils.LOGGER.info("Desired aspect ratio: {}, Actual aspect ratio: {}", desiredAspectRatio, actualAspectRatio);
-
         for (ItemStack itemStack : itemStacks) {
             // add rendered item to framebuffer
             GlStateManager.pushMatrix();
             RenderHelper.enableGUIStandardItemLighting();
 
-            GlStateManager.scale(scale, scale * scaleY, 1.0);
+            GlStateManager.scale(scale, scale, 1.0);
             ((IRenderItemMixin) Minecraft.getMinecraft().getRenderItem()).devUtils$renderItemIntoGUIWithoutEffect(itemStack, bufferX * 16, bufferY * 16);
 
             RenderHelper.disableStandardItemLighting();
