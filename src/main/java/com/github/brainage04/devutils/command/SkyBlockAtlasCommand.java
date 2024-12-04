@@ -37,7 +37,7 @@ public class SkyBlockAtlasCommand extends CommandBase {
                 "\n<fullAtlas> - generates the full (2,545 items) atlas if true, generates only the bazaar (~300 items) atlas if false";
     }
 
-    private void generateAtlasMappings(int size) {
+    private void generateAtlasMappings(int size, String fileName) {
         int bufferX = 0;
         int bufferY = 0;
 
@@ -68,7 +68,7 @@ public class SkyBlockAtlasCommand extends CommandBase {
             }
         }
 
-        File atlasMappingsFile = new File(String.format("%s.txt", getCommandName()));
+        File atlasMappingsFile = new File(String.format("%s.txt", fileName));
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(atlasMappingsFile))) {
             writer.write(atlasMappingsString.toString());
             ChatUtils.addChatMessage(String.format("Atlas mappings saved to %s", atlasMappingsFile.getAbsolutePath()));
@@ -76,7 +76,7 @@ public class SkyBlockAtlasCommand extends CommandBase {
             DevUtils.LOGGER.error("Failed to save atlas mappings: {}", e.getMessage());
         }
 
-        File atlasCssFile = new File(String.format("%s.css", getCommandName()));
+        File atlasCssFile = new File(String.format("%s.css", fileName));
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(atlasCssFile))) {
             writer.write(atlasCssString.toString());
             ChatUtils.addChatMessage(String.format("Atlas CSS saved to %s", atlasCssFile.getAbsolutePath()));
@@ -148,14 +148,18 @@ public class SkyBlockAtlasCommand extends CommandBase {
         int size = Integer.parseInt(args[0]);
         boolean fullAtlas = Boolean.parseBoolean(args[1]);
 
+        String fileName = getCommandName();
+
         if (fullAtlas) {
-            AtlasUtils.processAtlas(itemStacks, size, getCommandName() + "_full");
+            fileName += "_full";
+            AtlasUtils.processAtlas(itemStacks, size, fileName);
         } else {
+            fileName += "_bazaar";
             // todo: figure out how to efficiently store full and partial atlas itemstacks
-            AtlasUtils.processAtlas(itemStacks, size, getCommandName() + "_bazaar");
+            AtlasUtils.processAtlas(itemStacks, size, fileName);
         }
 
-        generateAtlasMappings(size);
+        generateAtlasMappings(size, fileName);
     }
 
     @Override

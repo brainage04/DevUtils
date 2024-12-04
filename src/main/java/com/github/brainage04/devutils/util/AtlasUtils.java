@@ -7,7 +7,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
@@ -41,10 +40,10 @@ public class AtlasUtils {
 
         double scale = 1.0 / 1.2; // DON'T ASK I DON'T KNOW
 
-        int displayWidth = Display.getWidth();
-        int displayHeight = Display.getHeight();
+        double displayWidth = Minecraft.getMinecraft().displayWidth;
+        double displayHeight = Minecraft.getMinecraft().displayHeight;
         double desiredAspectRatio = 16.0 / 9.0;
-        double actualAspectRatio = ((double) displayWidth) / ((double) displayHeight);
+        double actualAspectRatio = displayWidth / displayHeight;
         double scaleY = desiredAspectRatio / actualAspectRatio;
         DevUtils.LOGGER.info("Screen width: {}, Screen height: {}", displayWidth, displayHeight);
         DevUtils.LOGGER.info("Desired aspect ratio: {}, Actual aspect ratio: {}", desiredAspectRatio, actualAspectRatio);
