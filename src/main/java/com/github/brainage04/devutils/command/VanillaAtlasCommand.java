@@ -2,7 +2,6 @@ package com.github.brainage04.devutils.command;
 
 import com.github.brainage04.devutils.DevUtils;
 import com.github.brainage04.devutils.util.AtlasUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.init.Blocks;
@@ -71,7 +70,7 @@ public class VanillaAtlasCommand extends CommandBase {
             }
         }
 
-        File atlasMappingsFile = new File("atlas.txt");
+        File atlasMappingsFile = new File(String.format("%s.txt", getCommandName()));
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(atlasMappingsFile))) {
             writer.write(atlasMappingsString.toString());
             DevUtils.LOGGER.info("Atlas mappings saved to {}", atlasMappingsFile.getAbsolutePath());
@@ -79,7 +78,7 @@ public class VanillaAtlasCommand extends CommandBase {
             DevUtils.LOGGER.error("Failed to save atlas mappings: {}", e.getMessage());
         }
 
-        File atlasCssFile = new File("atlas.css");
+        File atlasCssFile = new File(String.format("%s.css", getCommandName()));
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(atlasCssFile))) {
             writer.write(atlasCssString.toString());
             DevUtils.LOGGER.info("Atlas CSS saved to {}", atlasCssFile.getAbsolutePath());
@@ -90,6 +89,10 @@ public class VanillaAtlasCommand extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
+        if (args.length != 1) {
+            return;
+        }
+
         if (itemStacks.isEmpty()) {
             for (Item item : Item.itemRegistry) {
                 // these items do not have models, and therefore should not be in the atlas
@@ -114,11 +117,6 @@ public class VanillaAtlasCommand extends CommandBase {
             }
         }
         DevUtils.LOGGER.info("Item stack count: {}", itemStacks.size());
-
-        if (args.length != 1) {
-            Minecraft.getMinecraft().thePlayer.sendChatMessage(getCommandUsage(Minecraft.getMinecraft().thePlayer));
-            return;
-        }
 
         int size = Integer.parseInt(args[0]);
 

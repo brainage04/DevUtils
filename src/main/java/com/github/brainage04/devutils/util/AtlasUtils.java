@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
@@ -38,13 +39,22 @@ public class AtlasUtils {
         Framebuffer framebuffer = new Framebuffer(width, height, true);
         framebuffer.bindFramebuffer(true);
 
+        double scale = 1.0 / 1.2; // DON'T ASK I DON'T KNOW
+
+        int displayWidth = Display.getWidth();
+        int displayHeight = Display.getHeight();
+        double desiredAspectRatio = 16.0 / 9.0;
+        double actualAspectRatio = ((double) displayWidth) / ((double) displayHeight);
+        double scaleY = desiredAspectRatio / actualAspectRatio;
+        DevUtils.LOGGER.info("Screen width: {}, Screen height: {}", displayWidth, displayHeight);
+        DevUtils.LOGGER.info("Desired aspect ratio: {}, Actual aspect ratio: {}", desiredAspectRatio, actualAspectRatio);
+
         for (ItemStack itemStack : itemStacks) {
             // add rendered item to framebuffer
             GlStateManager.pushMatrix();
             RenderHelper.enableGUIStandardItemLighting();
 
-            double scale = 1.0 / 1.2;
-            GlStateManager.scale(scale, scale, 1.0);
+            GlStateManager.scale(scale, scale * scaleY, 1.0);
             ((IRenderItemMixin) Minecraft.getMinecraft().getRenderItem()).devUtils$renderItemIntoGUIWithoutEffect(itemStack, bufferX * 16, bufferY * 16);
 
             RenderHelper.disableStandardItemLighting();
@@ -143,7 +153,7 @@ public class AtlasUtils {
         File output = new File(String.format("%s.png", fileName));
         try {
             ImageIO.write(image, "PNG", output);
-            DevUtils.LOGGER.info("Atlas saved to {}", output.getAbsolutePath());
+            ChatUtils.addChatMessage(String.format("Atlas saved to %s", output.getAbsolutePath()));
         } catch (IOException e) {
             DevUtils.LOGGER.error("Failed to save atlas: {}", e.getMessage());
         }

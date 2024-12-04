@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 @Mod(modid = DevUtils.MOD_ID, useMetadata=true)
 public class DevUtils {
     public static final String MOD_ID = "devutils";
+    public static final String MOD_NAME = "DevUtils";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     @Mod.EventHandler
