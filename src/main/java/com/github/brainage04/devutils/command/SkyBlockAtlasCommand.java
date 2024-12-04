@@ -23,7 +23,8 @@ public class SkyBlockAtlasCommand extends CommandBase {
     private static final String configPath = String.format("%s.json", DevUtils.MOD_ID);
     private static final File config = new File(configPath);
 
-    private final List<ItemStack> itemStacks = new ArrayList<>();
+    private final List<ItemStack> itemStacksFull = new ArrayList<>();
+    private final List<ItemStack> itemStacksBazaar = new ArrayList<>();
 
     @Override
     public String getCommandName() {
@@ -34,17 +35,17 @@ public class SkyBlockAtlasCommand extends CommandBase {
     public String getCommandUsage(ICommandSender sender) {
         return "/skyblockatlas <pixels> <fullAtlas>" +
                 "\n<pixels> - the width and height of each individual texture in the atlas" +
-                "\n<fullAtlas> - generates the full (2,545 items) atlas if true, generates only the bazaar (~300 items) atlas if false";
+                "\n<fullAtlas> - generates the full (~2,545 items) atlas if true, generates only the bazaar (~351 items) atlas if false";
     }
 
-    private void generateAtlasMappings(int size, String fileName) {
+    private void generateAtlasMappings(SkyBlockData.NameSkinValuePair[] pairs, int size, String fileName) {
         int bufferX = 0;
         int bufferY = 0;
 
         StringBuilder atlasMappingsString = new StringBuilder();
         StringBuilder atlasCssString = new StringBuilder();
 
-        for (SkyBlockData.NameSkinValuePair pair : SkyBlockData.allPairs) {
+        for (SkyBlockData.NameSkinValuePair pair : pairs) {
             String name = pair.name;
 
             atlasMappingsString.append(String.format(
@@ -85,9 +86,41 @@ public class SkyBlockAtlasCommand extends CommandBase {
         }
     }
 
+    private ItemStack generateSkull(String skinValue) {
+        ItemStack skull = new ItemStack(Items.skull, 1, 3);
+
+        // example: {SkullOwner:{Id:"00000000-0000-0000-0000-000000000000",Properties:{textures:[{Value:"base64"}]}}}
+        // create SkullOwner object and Id key/value
+        NBTTagCompound skullOwner = new NBTTagCompound();
+        // Id value MUST be unique - identical values will cause all skulls with the same Id to have the same texture
+        // EVEN if the texture URLs are different
+        UUID uuid = UUID.randomUUID();
+        skullOwner.setString("Id", uuid.toString());
+
+        // create Properties object and textures array
+        NBTTagCompound properties = new NBTTagCompound();
+        NBTTagList textures = new NBTTagList();
+
+        // create texture object with Value key/value
+        NBTTagCompound texture = new NBTTagCompound();
+        texture.setString("Value", skinValue);
+
+        // stitch everything together
+        textures.appendTag(texture);
+        properties.setTag("textures", textures);
+        skullOwner.setTag("Properties", properties);
+
+        // finally, add NBT to skull itemstack
+        skull.setTagCompound(new NBTTagCompound());
+        skull.getTagCompound().setTag("SkullOwner", skullOwner);
+
+        return skull;
+    }
+
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length != 2) {
+            ChatUtils.addChatMessage(getCommandUsage(sender));
             return;
         }
 
@@ -111,55 +144,32 @@ public class SkyBlockAtlasCommand extends CommandBase {
             }
         }
 
+        int size = Integer.parseInt(args[0]);
+        boolean fullAtlas = Boolean.parseBoolean(args[1]);
+
+        List<ItemStack> itemStacks;
+        SkyBlockData.NameSkinValuePair[] pairs;
+        String fileName = getCommandName();
+
+        if (fullAtlas) {
+            itemStacks = itemStacksFull;
+            pairs = SkyBlockData.allPairs;
+            fileName += "_full";
+        } else {
+            itemStacks = itemStacksBazaar;
+            pairs = SkyBlockData.bazaarPairs;
+            fileName += "_bazaar";
+        }
+
         if (itemStacks.isEmpty()) {
-            for (SkyBlockData.NameSkinValuePair pair : SkyBlockData.allPairs) {
-                ItemStack skull = new ItemStack(Items.skull, 1, 3);
-
-                // example: {SkullOwner:{Id:"00000000-0000-0000-0000-000000000000",Properties:{textures:[{Value:"base64"}]}}}
-                // create SkullOwner object and Id key/value
-                NBTTagCompound skullOwner = new NBTTagCompound();
-                // Id value MUST be unique - identical values will cause all skulls with the same Id to have the same texture
-                // EVEN if the texture URLs are different
-                UUID uuid = UUID.randomUUID();
-                skullOwner.setString("Id", uuid.toString());
-
-                // create Properties object and textures array
-                NBTTagCompound properties = new NBTTagCompound();
-                NBTTagList textures = new NBTTagList();
-
-                // create texture object with Value key/value
-                NBTTagCompound texture = new NBTTagCompound();
-                texture.setString("Value", pair.skinValue);
-
-                // stitch everything together
-                textures.appendTag(texture);
-                properties.setTag("textures", textures);
-                skullOwner.setTag("Properties", properties);
-
-                // finally, add NBT to skull itemstack
-                skull.setTagCompound(new NBTTagCompound());
-                skull.getTagCompound().setTag("SkullOwner", skullOwner);
-
-                itemStacks.add(skull);
+            for (SkyBlockData.NameSkinValuePair pair : pairs) {
+                itemStacks.add(generateSkull(pair.skinValue));
             }
         }
         DevUtils.LOGGER.info("Item stack count: {}", itemStacks.size());
 
-        int size = Integer.parseInt(args[0]);
-        boolean fullAtlas = Boolean.parseBoolean(args[1]);
-
-        String fileName = getCommandName();
-
-        if (fullAtlas) {
-            fileName += "_full";
-            AtlasUtils.processAtlas(itemStacks, size, fileName);
-        } else {
-            fileName += "_bazaar";
-            // todo: figure out how to efficiently store full and partial atlas itemstacks
-            AtlasUtils.processAtlas(itemStacks, size, fileName);
-        }
-
-        generateAtlasMappings(size, fileName);
+        AtlasUtils.processAtlas(itemStacks, size, fileName);
+        generateAtlasMappings(pairs, size, fileName);
     }
 
     @Override
