@@ -1,0 +1,6 @@
+commands.atlas.usage=Usage: /atlas <pixels>
+commands.skyblockatlas.usage=Usage: /skyblockatlas <pixels> <full|bazaar>
+
+message.tooltip.format=[%s] %s
+
+atlas.save.success=[%s] Saved %s to %s

@@ -2,22 +2,19 @@ package com.github.brainage04.devutils.command;
 
 import com.github.brainage04.devutils.DevUtils;
 import com.github.brainage04.devutils.util.AtlasUtils;
-import com.github.brainage04.devutils.util.ChatUtils;
 import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.WrongUsageException;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemPotion;
 import net.minecraft.item.ItemStack;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VanillaAtlasCommand extends CommandBase {
+public class AtlasCommand extends CommandBase {
     private final List<ItemStack> itemStacks = new ArrayList<>();
 
     @Override
@@ -27,8 +24,7 @@ public class VanillaAtlasCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/atlas <pixels>" +
-                "\n<pixels> - the width and height of each individual texture in the atlas";
+        return "commands.atlas.usage";
     }
 
     private void generateAtlasMappings(int size) {
@@ -71,28 +67,14 @@ public class VanillaAtlasCommand extends CommandBase {
             }
         }
 
-        File atlasMappingsFile = new File(String.format("%s.txt", getCommandName()));
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(atlasMappingsFile))) {
-            writer.write(atlasMappingsString.toString());
-            ChatUtils.addChatMessage(String.format("Atlas mappings saved to %s", atlasMappingsFile.getAbsolutePath()));
-        } catch (IOException e) {
-            DevUtils.LOGGER.error("Failed to save atlas mappings: {}", e.getMessage());
-        }
-
-        File atlasCssFile = new File(String.format("%s.css", getCommandName()));
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(atlasCssFile))) {
-            writer.write(atlasCssString.toString());
-            ChatUtils.addChatMessage(String.format("Atlas CSS saved to %s", atlasMappingsFile.getAbsolutePath()));
-        } catch (IOException e) {
-            DevUtils.LOGGER.error("Failed to save atlas CSS: {}", e.getMessage());
-        }
+        AtlasUtils.saveAtlasFile(String.format("%s.txt", getCommandName()), "atlas mappings", atlasMappingsString.toString());
+        AtlasUtils.saveAtlasFile(String.format("%s.css", getCommandName()), "atlas CSS", atlasCssString.toString());
     }
 
     @Override
-    public void processCommand(ICommandSender sender, String[] args) {
+    public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length != 1) {
-            ChatUtils.addChatMessage(getCommandUsage(sender));
-            return;
+            throw new WrongUsageException(getCommandUsage(sender));
         }
 
         if (itemStacks.isEmpty()) {
@@ -122,7 +104,9 @@ public class VanillaAtlasCommand extends CommandBase {
 
         int size = Integer.parseInt(args[0]);
 
-        AtlasUtils.processAtlas(itemStacks, size, getCommandName());
+        if (!AtlasUtils.processAtlas(itemStacks, size, getCommandName())) {
+            return;
+        }
 
         generateAtlasMappings(size);
     }
