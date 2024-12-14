@@ -2,11 +2,11 @@
   {
     "modid": "${modid}",
     "name": "DevUtils",
-    "description": "A mod that lets developers generate various 2D/3D texture atlases and more!",
+    "description": "A Minecraft Forge 1.8.9 mod that can generate pre-rendered texture atlases (and more!)",
     "version": "${version}",
     "mcversion": "${mcversion}",
     "url": "https://github.com/brainage04/DevUtils/",
-    "updateUrl": "",
+    "updateUrl": "https://github.com/brainage04/DevUtils/releases/latest",
     "authorList": [
       "brainage04"
     ],
