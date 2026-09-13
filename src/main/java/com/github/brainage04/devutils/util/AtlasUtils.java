@@ -1,12 +1,18 @@
 package com.github.brainage04.devutils.util;
 
 import com.github.brainage04.devutils.DevUtils;
+import com.github.brainage04.devutils.mixin.TextureMapAccessor;
 import com.github.brainage04.devutils.mixin_other.IRenderItemMixin;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
@@ -15,243 +21,122 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 public class AtlasUtils {
     public static final int columns = 16 * 2;
     public static final int rows = 9 * 2;
 
-    public static int[] framebufferToIntArray(Framebuffer framebuffer) {
-        // end framebuffer
-        framebuffer.bindFramebuffer(false);
-
-        int width = framebuffer.framebufferWidth;
-        int height = framebuffer.framebufferHeight;
-
-        IntBuffer intBuffer = ByteBuffer.allocateDirect(width * height * 4)
-                .order(ByteOrder.nativeOrder())
-                .asIntBuffer();
-        GL11.glReadPixels(0, 0, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, intBuffer);
-
-        int[] pixels = new int[width * height];
-        intBuffer.get(pixels);
-
-        return pixels;
-    }
-
-    /**
-     * Concatenates 1D int arrays in a 2D int array into a single 1D int array.
-     * @param intArrays A 2D int array.
-     * @param reverse If `true`, the 1D int arrays are concatenated in reverse order. Note: this does not reverse the order of data contained within the 1D int arrays.
-     * @return Returns a concatenated 1D int array.
-     */
-    public static int[] combineIntArrays(int[][] intArrays, boolean reverse) {
-        int finalLength = 0;
-
-        for (int[] intArray : intArrays) {
-            finalLength += intArray.length;
-        }
-
-        int[] finalArray = new int[finalLength];
-
-        if (reverse) {
-            int previousLength = finalLength;
-            for (int[] intArray : intArrays) {
-                previousLength -= intArray.length;
-                System.arraycopy(intArray, 0, finalArray, previousLength, intArray.length);
-            }
-        } else {
-            int previousLength = 0;
-            for (int[] intArray : intArrays) {
-                System.arraycopy(intArray, 0, finalArray, previousLength, intArray.length);
-                previousLength = intArray.length;
-            }
-        }
-
-        return finalArray;
-    }
-
-    private static class ErrorWithTooltip {
-        String message;
-        String tooltip;
-
-        public ErrorWithTooltip(String message, String tooltip) {
-            this.message = message;
-            this.tooltip = tooltip;
-        }
-    }
-
     public static boolean processAtlas(List<ItemStack> itemStacks, int size, String fileName) {
-        // use boolean to track if anything is wrong so users don't have to
-        // run the command multiple times to figure out everything that is wrong
-        boolean shouldReturn = false;
-
-        // track message info to report later
-        List<ErrorWithTooltip> errors = new ArrayList<>(3);
-
-        // divide size by the bigger number between columns and rows (columns - for now)
-        int maxSize = columns > rows
-                ? Math.round((float) Minecraft.getGLMaximumTextureSize() / columns)
-                : Math.round((float) Minecraft.getGLMaximumTextureSize() / rows);
-        if (size > maxSize) {
-            errors.add(
-                    new ErrorWithTooltip(
-                            "Texture atlas size is too big.",
-                            String.format(
-                                    "Use a size of %d or less.",
-                                    maxSize
-                            )
-                    )
-            );
-            shouldReturn = true;
+        Minecraft minecraft = Minecraft.getMinecraft();
+        int maxSize = Minecraft.getGLMaximumTextureSize() / Math.max(columns, rows);
+        if (size < 1 || size > maxSize) {
+            ChatUtils.addChatMessage("Texture atlas size is invalid.",
+                    String.format("Use a size between 1 and %d.", maxSize), ChatUtils.MessageType.ERROR);
+            return false;
         }
-
-        // not being fullscreen (specifically not matching the aspect ratio of the screen) causes scaling issues
-        if (!Minecraft.getMinecraft().isFullScreen()) {
-            // for some reason this doesn't work (even though it SHOULD - maybe I just need to wait a few ticks or something?)
-            //Minecraft.getMinecraft().toggleFullscreen();
-            errors.add(
-                    new ErrorWithTooltip(
-                            "Minecraft is not fullscreen.",
-                            "This causes inconsistencies in texture dimensions\n" +
-                                    "(when the aspect ratios of Minecraft and your screen are mismatched).\n" +
-                                    "For consistent texture dimensions, please enter fullscreen mode."
-                    )
-            );
-            shouldReturn = true;
-        }
-
-/*
-        boolean isGuiScaleAuto = Minecraft.getMinecraft().gameSettings.guiScale == 0;
-        int oldGuiScale = Minecraft.getMinecraft().gameSettings.guiScale;
-        if (!isGuiScaleAuto) {
-            Minecraft.getMinecraft().gameSettings.guiScale = 0;
-
-            errors.add(
-                    new ErrorWithTooltip(
-                            "GUI Scale is not set to Auto.",
-                            "This causes incorrect lighting.\n" +
-                                    "For lighting consistent with in-game GUIs,\n" +
-                                    "set your GUI Scale to Auto."
-                    )
-            );
-            shouldReturn = true;
-
-    }
- */
-
-        if (shouldReturn) {
-            ChatUtils.addChatMessage("Errors:", ChatUtils.MessageType.ERROR);
-
-            for (ErrorWithTooltip error : errors) {
-                ChatUtils.addChatMessage(
-                        error.message,
-                        error.tooltip,
-                        ChatUtils.MessageType.ERROR
-                );
-            }
-
+        if (!OpenGlHelper.isFramebufferEnabled() || itemStacks.isEmpty()) {
+            ChatUtils.addChatMessage("Atlas export requires framebuffers and at least one item.",
+                    ChatUtils.MessageType.ERROR);
             return false;
         }
 
         int width = size * columns;
         int height = size * rows;
+        int outputRows = (itemStacks.size() + columns - 1) / columns;
+        BufferedImage image = new BufferedImage(width, outputRows * size, BufferedImage.TYPE_INT_ARGB);
+        IntBuffer readback = BufferUtils.createIntBuffer(width * height);
+        int[] scanline = new int[width];
 
-        int framebufferCount = (int) Math.ceil(
-                ((double) itemStacks.size()) / ((double) (columns * rows))
-        );
-        int framebufferIndex = 0;
-        int[][] frameData = new int[framebufferCount][width * height];
-
-        int bufferX = 0;
-        int bufferY = 0;
-
+        // Snapshot the live texture before selecting a canonical animation frame.
+        // Only mip level zero is sampled by the GUI renderer; restore it verbatim
+        // afterwards without advancing the world's animation counters.
+        TextureMap textures = minecraft.getTextureMapBlocks();
+        minecraft.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
+        int textureWidth = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH);
+        int textureHeight = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT);
+        IntBuffer liveTexture = BufferUtils.createIntBuffer(textureWidth * textureHeight);
+        GL11.glGetTexImage(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, liveTexture);
         Framebuffer framebuffer = new Framebuffer(width, height, true);
-        framebuffer.bindFramebuffer(true);
+        framebuffer.setFramebufferColor(0, 0, 0, 0);
 
-        // DON'T ASK I DON'T KNOW
-        double scale = 1.0 / 1.2;
-        // account for GUI Scale setting
-/*
-        if (!isGuiScaleAuto) {
-            double currentScale = calculateScaleFactor(Minecraft.getMinecraft().gameSettings.guiScale);
-            double autoScale = calculateScaleFactor(0); // 0 = auto, 1 = small, 2 = normal, 3 = large
-            scale *= autoScale / currentScale;
-        }
- */
-
+        // A GUI item occupies 16 units. Map exactly 32 x 18 such cells to the
+        // export viewport, never to ScaledResolution or the window's projection.
+        int matrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
+        GlStateManager.matrixMode(GL11.GL_PROJECTION);
         GlStateManager.pushMatrix();
-        GlStateManager.scale(scale, scale, 1.0);
+        GlStateManager.loadIdentity();
+        GlStateManager.ortho(0, columns * 16, rows * 16, 0, 1000, 3000);
+        GlStateManager.matrixMode(GL11.GL_MODELVIEW);
+        GlStateManager.pushMatrix();
+        GlStateManager.loadIdentity();
+        GlStateManager.translate(0, 0, -2000);
         RenderHelper.enableGUIStandardItemLighting();
+        GlStateManager.enableDepth();
+        GlStateManager.depthFunc(GL11.GL_LEQUAL);
+        GlStateManager.depthMask(true);
+        GlStateManager.colorMask(true, true, true, true);
 
-        for (ItemStack itemStack : itemStacks) {
-            // add rendered item to framebuffer
-            ((IRenderItemMixin) Minecraft.getMinecraft().getRenderItem()).devUtils$renderItemIntoGUIWithoutEffect(itemStack, bufferX * 16, bufferY * 16);
-
-            // increment counters
-            bufferX++;
-            if (bufferX == columns) {
-                bufferX = 0;
-                bufferY++;
+        try {
+            minecraft.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
+            for (TextureAtlasSprite sprite : ((TextureMapAccessor) textures).devUtils$getAnimatedSprites()) {
+                for (int frame = 0; frame < sprite.getFrameCount(); frame++) {
+                    int[][] data = sprite.getFrameTextureData(frame);
+                    if (data != null) {
+                        TextureUtil.uploadTextureMipmap(new int[][] {data[0]},
+                                sprite.getIconWidth(), sprite.getIconHeight(),
+                                sprite.getOriginX(), sprite.getOriginY(), false, false);
+                        break;
+                    }
+                }
             }
-
-            if (bufferY == rows) { // if 19th row reached (framebuffer is 32x18), start new framebuffer
-                frameData[framebufferIndex] = AtlasUtils.framebufferToIntArray(framebuffer);
-                framebufferIndex++;
-
-                framebuffer = new Framebuffer(width, height, true);
+            int itemsPerPage = columns * rows;
+            for (int first = 0; first < itemStacks.size(); first += itemsPerPage) {
+                framebuffer.framebufferClear();
                 framebuffer.bindFramebuffer(true);
-                bufferY = 0;
+                int count = Math.min(itemsPerPage, itemStacks.size() - first);
+                for (int index = 0; index < count; index++) {
+                    ((IRenderItemMixin) minecraft.getRenderItem()).devUtils$renderItemIntoGUIWithoutEffect(
+                            itemStacks.get(first + index), index % columns * 16, index / columns * 16);
+                }
+
+                readback.clear();
+                GL11.glReadPixels(0, 0, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, readback);
+                int usedHeight = (count + columns - 1) / columns * size;
+                int outputY = first / columns * size;
+                for (int y = 0; y < usedHeight; y++) {
+                    readback.position((height - y - 1) * width);
+                    readback.get(scanline);
+                    for (int x = 0; x < width; x++) {
+                        int rgba = scanline[x];
+                        scanline[x] = (rgba & 0xFF00FF00) | ((rgba & 0xFF) << 16) | ((rgba >> 16) & 0xFF);
+                    }
+                    image.setRGB(0, outputY + y, width, 1, scanline, 0, width);
+                }
             }
-        }
-
-        RenderHelper.disableStandardItemLighting();
-        GlStateManager.popMatrix();
-
-        // save final framebuffer
-        frameData[framebufferIndex] = AtlasUtils.framebufferToIntArray(framebuffer);
-        // stack frames vertically into one frame
-        int[] pixels = AtlasUtils.combineIntArrays(frameData, true);
-        // save frame as PNG to disk (and remove empty rows)
-        AtlasUtils.saveTextureAtlas(pixels, 0, height - (bufferY + 1) * size, width, height * framebufferCount, fileName);
-
-/*
-        if (!isGuiScaleAuto) {
-            Minecraft.getMinecraft().gameSettings.guiScale = oldGuiScale;
-        }
- */
-
-        return true;
-    }
-
-    public static void saveTextureAtlas(int[] pixels, int startX, int startY, int endX, int endY, String fileName) {
-        int width = endX - startX;
-        int height = endY - startY;
-
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int pixel = pixels[(endY - y - 1) * endX + x]; // Flip vertically
-                int alpha = (pixel >> 24) & 0xFF;
-                int blue = (pixel >> 16) & 0xFF;
-                int green = (pixel >> 8) & 0xFF;
-                int red = pixel & 0xFF;
-
-                // Combine channels into ARGB format
-                image.setRGB(x, y, (alpha << 24) | (red << 16) | (green << 8) | blue);
-            }
+        } finally {
+            minecraft.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
+            GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureHeight,
+                    GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, liveTexture);
+            RenderHelper.disableStandardItemLighting();
+            GlStateManager.matrixMode(GL11.GL_MODELVIEW);
+            GlStateManager.popMatrix();
+            GlStateManager.matrixMode(GL11.GL_PROJECTION);
+            GlStateManager.popMatrix();
+            GlStateManager.matrixMode(matrixMode);
+            framebuffer.deleteFramebuffer();
+            minecraft.getFramebuffer().bindFramebuffer(true);
         }
 
         File output = new File(String.format("%s.png", fileName));
         try {
             ImageIO.write(image, "PNG", output);
             ChatUtils.addAtlasComponent(output, "texture atlas");
+            return true;
         } catch (IOException e) {
             DevUtils.LOGGER.error("Failed to save atlas: {}", e.getMessage());
+            return false;
         }
     }
 
@@ -265,23 +150,4 @@ public class AtlasUtils {
         }
     }
 
-/*
-    public static int calculateScaleFactor(int guiScale) {
-        // copied from net.minecraft.client.gui.ScaledResolution
-        int scaledWidth = Display.getWidth();
-        int scaledHeight = Display.getHeight();
-        int scaleFactor = 1;
-        boolean bl = Minecraft.getMinecraft().isUnicode();
-        if (guiScale == 0) {
-            guiScale = 1000;
-        }
-        while (scaleFactor < guiScale && scaledWidth / (scaleFactor + 1) >= 320 && scaledHeight / (scaleFactor + 1) >= 240) {
-            ++scaleFactor;
-        }
-        if (bl && scaleFactor % 2 != 0 && scaleFactor != 1) {
-            --scaleFactor;
-        }
-        return scaleFactor;
-    }
-*/
 }
