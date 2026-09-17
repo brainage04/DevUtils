@@ -4,3 +4,8 @@ run/
 build/
 .gradle/
 
+.classpath
+.project
+.settings/
+bin/
+
