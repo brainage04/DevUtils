@@ -1,0 +1,12 @@
+{
+  "client": "devutils3-client stopped, exit 143 (supervised SIGTERM)",
+  "server": "devutils3-server stopped via console stop, exit 0",
+  "display": "devutils3-xvfb stopped, exit 0",
+  "sink": "devutils3capture: module 536870919 unloaded successfully",
+  "displayProbe": {
+    "returncode": 1,
+    "stderr": "Failed creating new xdo instance.\n"
+  },
+  "remainingSinks": "63\talsa_output.usb-Generic_USB_Audio-00.HiFi__SPDIF__sink\tPipeWire\ts16le 2ch 48000Hz\tSUSPENDED\n64\talsa_output.usb-Generic_USB_Audio-00.HiFi__Speaker__sink\tPipeWire\ts32le 2ch 48000Hz\tSUSPENDED\n65\talsa_output.usb-Generic_USB_Audio-00.HiFi__Headphones__sink\tPipeWire\ts32le 2ch 48000Hz\tSUSPENDED\n68\talsa_output.usb-HP__Inc_HyperX_Cloud_III_000000000000-00.analog-stereo\tPipeWire\ts24le 2ch 48000Hz\tRUNNING\n20306\talsa_output.pci-0000_01_00.1.hdmi-stereo\tPipeWire\ts16le 2ch 48000Hz\tSUSPENDED\n21579\ttag_fix\tPipeWire\tfloat32le 2ch 48000Hz\tSUSPENDED\n21590\tround3_scenes\tPipeWire\tfloat32le 2ch 48000Hz\tRUNNING\n21638\tmodels_port_sink\tPipeWire\tfloat32le 2ch 48000Hz\tRUNNING\n21646\tdungeon2_capture\tPipeWire\tfloat32le 2ch 48000Hz\tRUNNING\n",
+  "remainingSinkInputs": "21630\t21590\t21624\tPipeWire\tfloat32le 2ch 48000Hz\n21703\t21646\t21697\tPipeWire\tfloat32le 2ch 48000Hz\n21873\t21638\t21867\tPipeWire\tfloat32le 2ch 48000Hz\n21969\t68\t21968\tPipeWire\tfloat32le 2ch 48000Hz\n"
+}

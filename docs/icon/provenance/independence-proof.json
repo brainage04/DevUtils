@@ -1,0 +1,180 @@
+{
+  "method": "Independent client launches; real client-side /atlas commands typed with xdotool on isolated Xvfb :223. Stock Minecraft 1.8.9 resources; no resource pack, export postprocessing, image re-encoding, or hash substitution.",
+  "configurations": [
+    {
+      "configuration": "a-1280x720-gui1",
+      "command": "/atlas 64",
+      "guiScale": "guiScale:1",
+      "windowGeometry": "WINDOW=4194307\nX=640\nY=360\nWIDTH=1280\nHEIGHT=720\nSCREEN=0\n",
+      "files": {
+        "atlas.png": "f14b0eb53e94e071f91e0724d932abee7aa4a8f17084323e8a97feb62c928e8b",
+        "atlas.txt": "321c54e9724e340c039f2405d60e6fd433a2f1546613cdbd4794adbc39d0457c",
+        "atlas.css": "e66f279f53817cdfedcab9fe1bd011f9a35cd57b2354318d85d143ad80ac772e"
+      },
+      "dimensions": [
+        2048,
+        1280
+      ],
+      "mappedCells": 610,
+      "emptyMappedCells": 0,
+      "evidence": "exports/a-1280x720-gui1-64"
+    },
+    {
+      "configuration": "b-1600x1000-gui2",
+      "command": "/atlas 64",
+      "guiScale": "guiScale:2",
+      "windowGeometry": "WINDOW=4194307\nX=480\nY=220\nWIDTH=1600\nHEIGHT=1000\nSCREEN=0\n",
+      "files": {
+        "atlas.png": "f14b0eb53e94e071f91e0724d932abee7aa4a8f17084323e8a97feb62c928e8b",
+        "atlas.txt": "321c54e9724e340c039f2405d60e6fd433a2f1546613cdbd4794adbc39d0457c",
+        "atlas.css": "e66f279f53817cdfedcab9fe1bd011f9a35cd57b2354318d85d143ad80ac772e"
+      },
+      "dimensions": [
+        2048,
+        1280
+      ],
+      "mappedCells": 610,
+      "emptyMappedCells": 0,
+      "evidence": "exports/b-1600x1000-gui2-64"
+    },
+    {
+      "configuration": "c-1920x1080-gui3",
+      "command": "/atlas 64",
+      "guiScale": "guiScale:3",
+      "windowGeometry": "WINDOW=4194307\nX=320\nY=180\nWIDTH=1920\nHEIGHT=1080\nSCREEN=0\n",
+      "files": {
+        "atlas.png": "f14b0eb53e94e071f91e0724d932abee7aa4a8f17084323e8a97feb62c928e8b",
+        "atlas.txt": "321c54e9724e340c039f2405d60e6fd433a2f1546613cdbd4794adbc39d0457c",
+        "atlas.css": "e66f279f53817cdfedcab9fe1bd011f9a35cd57b2354318d85d143ad80ac772e"
+      },
+      "dimensions": [
+        2048,
+        1280
+      ],
+      "mappedCells": 610,
+      "emptyMappedCells": 0,
+      "evidence": "exports/c-1920x1080-gui3-64"
+    },
+    {
+      "configuration": "a-1280x720-gui1",
+      "command": "/atlas 256",
+      "guiScale": "guiScale:1",
+      "windowGeometry": "WINDOW=4194307\nX=640\nY=360\nWIDTH=1280\nHEIGHT=720\nSCREEN=0\n",
+      "files": {
+        "atlas.png": "faa0bfa7d0776dce2f359a9522cafa38c0d204bfa3fe673ffe5af83645db1d3c",
+        "atlas.txt": "321c54e9724e340c039f2405d60e6fd433a2f1546613cdbd4794adbc39d0457c",
+        "atlas.css": "1dda29787b1c5a8b0670edee386f814d8242445a29fbbd3de14102aac4c20ed4"
+      },
+      "dimensions": [
+        8192,
+        5120
+      ],
+      "mappedCells": 610,
+      "emptyMappedCells": 0,
+      "evidence": "exports/a-1280x720-gui1-256"
+    },
+    {
+      "configuration": "b-1600x1000-gui2",
+      "command": "/atlas 256",
+      "guiScale": "guiScale:2",
+      "windowGeometry": "WINDOW=4194307\nX=480\nY=220\nWIDTH=1600\nHEIGHT=1000\nSCREEN=0\n",
+      "files": {
+        "atlas.png": "faa0bfa7d0776dce2f359a9522cafa38c0d204bfa3fe673ffe5af83645db1d3c",
+        "atlas.txt": "321c54e9724e340c039f2405d60e6fd433a2f1546613cdbd4794adbc39d0457c",
+        "atlas.css": "1dda29787b1c5a8b0670edee386f814d8242445a29fbbd3de14102aac4c20ed4"
+      },
+      "dimensions": [
+        8192,
+        5120
+      ],
+      "mappedCells": 610,
+      "emptyMappedCells": 0,
+      "evidence": "exports/b-1600x1000-gui2-256"
+    },
+    {
+      "configuration": "c-1920x1080-gui3",
+      "command": "/atlas 256",
+      "guiScale": "guiScale:3",
+      "windowGeometry": "WINDOW=4194307\nX=320\nY=180\nWIDTH=1920\nHEIGHT=1080\nSCREEN=0\n",
+      "files": {
+        "atlas.png": "faa0bfa7d0776dce2f359a9522cafa38c0d204bfa3fe673ffe5af83645db1d3c",
+        "atlas.txt": "321c54e9724e340c039f2405d60e6fd433a2f1546613cdbd4794adbc39d0457c",
+        "atlas.css": "1dda29787b1c5a8b0670edee386f814d8242445a29fbbd3de14102aac4c20ed4"
+      },
+      "dimensions": [
+        8192,
+        5120
+      ],
+      "mappedCells": 610,
+      "emptyMappedCells": 0,
+      "evidence": "exports/c-1920x1080-gui3-256"
+    }
+  ],
+  "groups": [
+    {
+      "perItemPixels": 64,
+      "identicalBytes": true,
+      "sha256": {
+        "atlas.png": "f14b0eb53e94e071f91e0724d932abee7aa4a8f17084323e8a97feb62c928e8b",
+        "atlas.txt": "321c54e9724e340c039f2405d60e6fd433a2f1546613cdbd4794adbc39d0457c",
+        "atlas.css": "e66f279f53817cdfedcab9fe1bd011f9a35cd57b2354318d85d143ad80ac772e"
+      },
+      "configurations": 3
+    },
+    {
+      "perItemPixels": 256,
+      "identicalBytes": true,
+      "sha256": {
+        "atlas.png": "faa0bfa7d0776dce2f359a9522cafa38c0d204bfa3fe673ffe5af83645db1d3c",
+        "atlas.txt": "321c54e9724e340c039f2405d60e6fd433a2f1546613cdbd4794adbc39d0457c",
+        "atlas.css": "1dda29787b1c5a8b0670edee386f814d8242445a29fbbd3de14102aac4c20ed4"
+      },
+      "configurations": 3
+    }
+  ],
+  "geometry": {
+    "oldPitchPx": 34.13333333333333,
+    "fixedPitchPx": 64,
+    "oldCanvas": [
+      2048,
+      1280
+    ],
+    "oldAlphaBounds": [
+      0,
+      0,
+      1092,
+      1214
+    ],
+    "fixedCanvas": [
+      2048,
+      1280
+    ],
+    "fixedAlphaBounds": [
+      0,
+      0,
+      2048,
+      1268
+    ],
+    "all610MappedCellsPopulated": true,
+    "fullPageCells": 576,
+    "secondPageMappedCells": 34,
+    "unusedFinalRowCells": 30,
+    "note": "Transparent margins within natural item silhouettes and the final 30 unmapped cells are intentional, not the former canvas gap. All 610 mappings are populated, including every cell of the first 32x18 page."
+  },
+  "maximumResolution": {
+    "perItemPixels": 512,
+    "glMaximumTextureSize": 16384,
+    "command": "/atlas 512",
+    "dimensions": [
+      16384,
+      10240
+    ],
+    "sha256": {
+      "atlas.css": "153cd833a334964cf1835e45dcb4aba1ab76fae397f88c020148aec80f18dc0e",
+      "atlas.txt": "321c54e9724e340c039f2405d60e6fd433a2f1546613cdbd4794adbc39d0457c",
+      "atlas.png": "e50fcc3160f371f976125549053c9a1e31c0f964f93495880c5b4e96d6facd23"
+    },
+    "evidence": "exports/c-1920x1080-gui3-512",
+    "note": "512 = 16384 / 32 is the mod/hardware maximum; /atlas 513 was rejected. The icon uses a separate native /atlas 256 export for exact 1:1 cells, not a downsample of this maximum export."
+  }
+}

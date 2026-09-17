@@ -1,0 +1,25 @@
+// Round-3 iteration 4: verify the locally fixed DevUtils 1.8.9 client on
+// isolated display :223 and null sink devutils3capture, server port 25963.
+// Copied from atlas2/tools/devutils-client-atlas2.init.gradle; original untouched.
+// Final launch configuration shown; the three measured configurations and
+// their persisted options/window geometry are in exports/*/proof.json.
+gradle.projectsEvaluated {
+    // Legacy loom resolves runDir/workingDir against the project directory, so reach the private
+    // runtime directory through a relative path instead of an absolute one.
+    def runtimeRel = '../../Websites/brainage04.github.io/.local-icon-variants/round3/atlas3/devutils/runtime'
+    def client = rootProject.loom.runs.client
+    client.runDir(runtimeRel)
+    client.vmArgs('-Xmx4G')
+    client.programArgs('--width', '1920', '--height', '1080')
+    client.programArgs('--server', System.getenv('ATLAS_DEVUTILS_SERVER') ?: '127.0.0.1',
+                       '--port',     System.getenv('ATLAS_DEVUTILS_PORT') ?: '25963')
+    rootProject.tasks.named('runClient') {
+        workingDir(runtimeRel)
+        environment('DISPLAY', System.getenv('ATLAS_DISPLAY') ?: ':223')
+        environment('PULSE_SINK', System.getenv('ATLAS_SINK') ?: 'devutils3capture')
+        def libPath = System.getenv('LD_LIBRARY_PATH')
+        if (libPath != null) environment('LD_LIBRARY_PATH', libPath)
+        def driverPath = System.getenv('LIBGL_DRIVERS_PATH')
+        if (driverPath != null) environment('LIBGL_DRIVERS_PATH', driverPath)
+    }
+}
